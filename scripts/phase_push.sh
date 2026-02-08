@@ -7,11 +7,18 @@ set -euo pipefail
 
 if [ "$#" -lt 1 ]; then
   echo "Usage: $0 <phase-name-or-number> [commit-message]"
+  echo "  Add --yes as last arg to skip confirmation."
   exit 2
 fi
 
 PHASE="$1"
 shift || true
+SKIP_CONFIRM=0
+if [ "${@: -1}" = "--yes" ]; then
+  SKIP_CONFIRM=1
+  set -- "${@:1:$(($#-1))}"
+fi
+
 MSG="${*:-"Complete $PHASE"}"
 
 echo "Preparing to commit and push changes for: $PHASE"
@@ -31,11 +38,24 @@ else
   git commit -m "$MSG"
 fi
 
+
 # Create a timestamped tag for this phase
 TAG_NAME="phase-${PHASE}-$(date +%Y%m%d%H%M%S)"
 git tag -a "$TAG_NAME" -m "Tag for $PHASE"
 
-echo "Pushing branch and tags to origin..."
+echo "About to push the following to origin:"
+git --no-pager log -n 3 --pretty=oneline HEAD
+echo "Tag: $TAG_NAME"
+
+if [ "$SKIP_CONFIRM" -ne 1 ]; then
+  read -r -p "Confirm push for $PHASE and tag $TAG_NAME? [y/N] " REPLY
+  case "$REPLY" in
+    [yY][eE][sS]|[yY]) ;;
+    *) echo "Aborted by user."; exit 0 ;;
+  esac
+fi
+
+echo "Pushing branch and tag to origin..."
 git push origin HEAD
 git push origin "$TAG_NAME"
 

@@ -475,6 +475,7 @@ python3 -m http.server 8000
 2. **Refresh browser** (no build step needed)
 3. **Test** UI interactions and AI responses
 4. **Commit** changes with clear messages
+5. **Release** a completed phase using the helper script `./scripts/phase_push.sh` which stages, commits (if needed), creates a timestamped tag, and pushes the branch + tag to `origin`. The script prompts for confirmation by default; add `--yes` to skip confirmation for automation.
 
 ### Contributing
 

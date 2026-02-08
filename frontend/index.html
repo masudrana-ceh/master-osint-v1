@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Master OSINT — Intelligence Analysis Platform</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <svg class="logo-icon" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="22" cy="22" r="20" stroke="url(#grad)" stroke-width="2"/>
+          <path d="M 22 12 L 28 22 L 22 32 L 16 22 Z" fill="url(#grad)"/>
+          <defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#00f0d9;stop-opacity:1" /><stop offset="100%" style="stop-color:#5aa0ff;stop-opacity:1" /></linearGradient></defs>
+        </svg>
+        <div>
+          <h1>MASTER</h1>
+          <p>OSINT</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <button class="nav-btn active" data-panel="home"><span>🏠</span> Home</button>
+        <button class="nav-btn" data-panel="search"><span>🔍</span> Search</button>
+        <button class="nav-btn" data-panel="domain"><span>🌐</span> Domain</button>
+        <button class="nav-btn" data-panel="documents"><span>📄</span> Documents</button>
+        <button class="nav-btn" data-panel="people"><span>👤</span> People</button>
+        <button class="nav-btn" data-panel="timeline"><span>⏱️</span> Timeline</button>
+        <button class="nav-btn" data-panel="maps"><span>🗺️</span> Maps</button>
+        <button class="nav-btn" data-panel="correlation"><span>🔗</span> Correlation</button>
+        <button class="nav-btn" data-panel="reports"><span>📊</span> Reports</button>
+        <button class="nav-btn" data-panel="ai"><span>🤖</span> AI Assistant</button>
+        <button class="nav-btn" data-panel="settings"><span>⚙️</span> Settings</button>
+      </nav>
+      <footer class="sidebar-foot">Powered by Intelligence</footer>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="search-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input id="global-search" placeholder="Analyze keyword, domain, or name..." />
+            <button id="search-btn">Analyze</button>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <span class="badge">🔒 Public Data Only</span>
+        </div>
+      </header>
+
+      <section id="panels" class="panels">
+        <section id="panel-home" class="panel active">
+          <div class="hero">
+            <h2>Master OSINT Intelligence Platform</h2>
+            <p class="lead">Analyze publicly available information to understand digital exposure, connections, and relationships.</p>
+          </div>
+
+          <div class="features-grid">
+            <div class="feature-card">
+              <div class="feature-icon">🔍</div>
+              <h3>Smart Search</h3>
+              <p>Search across public sources with AI-powered insights</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🌐</div>
+              <h3>Domain Intelligence</h3>
+              <p>Analyze domain metadata, DNS, and registration info</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">📄</div>
+              <h3>Document Analysis</h3>
+              <p>Extract metadata from publicly available files</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🤖</div>
+              <h3>AI Assistant</h3>
+              <p>Get AI-powered analysis and insights on your findings</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🔗</div>
+              <h3>Correlation Engine</h3>
+              <p>Visualize connections and relationships in data</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">📊</div>
+              <h3>Reports & Export</h3>
+              <p>Generate professional reports and export findings</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="panel-search" class="panel">
+          <h2>Search</h2>
+          <div class="controls">
+            <input id="search-input" placeholder="Enter keyword, name or domain" />
+            <select id="search-source">
+              <option>All public sources</option>
+              <option>Web</option>
+              <option>Social</option>
+            </select>
+            <button id="do-search">Run Mock Search</button>
+          </div>
+          <div id="search-results" class="results"></div>
+        </section>
+
+        <section id="panel-domain" class="panel">
+          <h2>Domain</h2>
+          <div class="placeholder">Domain intelligence dashboard (mock)</div>
+        </section>
+
+        <section id="panel-documents" class="panel">
+          <h2>Documents</h2>
+          <div class="placeholder">Upload-only analysis (Phase 4)</div>
+        </section>
+
+        <section id="panel-people" class="panel">
+          <h2>People</h2>
+          <div class="placeholder">Public identity overview (mock)</div>
+        </section>
+
+        <section id="panel-timeline" class="panel">
+          <h2>Timeline</h2>
+          <div class="placeholder">Temporal visualizations (mock)</div>
+        </section>
+
+        <section id="panel-maps" class="panel">
+          <h2>Maps</h2>
+          <div class="placeholder">Geospatial context (mock)</div>
+        </section>
+
+        <section id="panel-correlation" class="panel">
+          <h2>Correlation</h2>
+          <div class="placeholder">Relationship graph (Phase 8)</div>
+        </section>
+
+        <section id="panel-reports" class="panel">
+          <h2>Reports</h2>
+          <div class="placeholder">Export and summary tools</div>
+        </section>
+
+        <section id="panel-ai" class="panel">
+          <h2>AI Assistant</h2>
+          <div class="ai-container">
+            <div id="ai-chat" class="chat-window"></div>
+            <div class="ai-input-wrapper">
+              <input id="ai-input" placeholder="Ask for analysis, insights, or clarification..." />
+              <button id="ai-send">Send</button>
+            </div>
+            <p style="color: var(--muted); font-size: 12px; margin-top: 12px;">💡 Powered by free AI model • Ask for OSINT analysis, data interpretation, or methodology help</p>
+          </div>
+        </section>
+          <h2>Settings & Ethics</h2>
+          <div class="ethics-section">
+            <h3>🛡️ Ethical Guidelines</h3>
+            <p><strong>Public Data Only:</strong> This tool analyzes publicly available information exclusively.</p>
+            <p><strong>No Hacking:</strong> No login bypassing, credential theft, or system penetration.</p>
+            <p><strong>No Harassment:</strong> Do not use findings to doxx, stalk, or harm individuals.</p>
+            <p><strong>Attribution Required:</strong> Always cite sources and maintain data provenance.</p>
+            <p><strong>Legal Compliance:</strong> Respect robots.txt, rate limits, and applicable laws.</p>
+            <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.04); margin: 14px 0;">
+            <h3>📋 Terms of Use</h3>
+            <p>Master OSINT is for educational and research purposes. Users are responsible for legal compliance and ethical conduct.</p>
+          </div>
+        </section>
+      </section>
+
+      <footer class="footer">© Master OSINT Intelligence Platform — Public Data Only • Research & Education</footer>
+    </main>
+  </div>
+
+  <script src="assets/ai-config.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

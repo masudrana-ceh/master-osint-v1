@@ -11,23 +11,63 @@ document.querySelectorAll('.nav-btn').forEach(btn=>{
 });
 
 // ========== SEARCH MODULE ==========
-document.getElementById('do-search').addEventListener('click', ()=>{
-  const q = document.getElementById('search-input').value || 'example query';
-  showMockResults(q);
+document.getElementById('do-search').addEventListener('click', async ()=>{
+  const q = (document.getElementById('search-input').value || 'example query').trim();
+  const source = document.getElementById('search-source').value;
+  const container = document.getElementById('search-results');
+  container.innerHTML = '<div class="loading">Searching...</div>';
+  try{
+    let results = [];
+    if(source === 'duckduckgo'){
+      results = await duckDuckGoSearch(q);
+    }else if(source === 'web' || source === 'social'){
+      results = mockResultsForQuery(q);
+    }
+    renderResults(results);
+  }catch(err){
+    container.innerHTML = `<div class="error">⚠️ ${err.message}</div>`;
+  }
 });
 
-function showMockResults(q){
-  const container = document.getElementById('search-results');
-  container.innerHTML = '';
-  const mock = [
+async function duckDuckGoSearch(q){
+  const endpoint = `https://api.duckduckgo.com/?q=${encodeURIComponent(q)}&format=json&no_redirect=1&no_html=1`;
+  const resp = await fetch(endpoint);
+  if(!resp.ok) throw new Error('DuckDuckGo API error');
+  const data = await resp.json();
+  const results = [];
+  if(data.AbstractText){
+    results.push({title: data.Heading || q, url: data.AbstractURL || `https://duckduckgo.com/?q=${encodeURIComponent(q)}`, snippet: data.AbstractText});
+  }
+  if(Array.isArray(data.RelatedTopics)){
+    data.RelatedTopics.slice(0,8).forEach(t=>{
+      if(t.Text && t.FirstURL){
+        results.push({title: (t.Text.split(' - ')[0]||t.Text), url: t.FirstURL, snippet: t.Text});
+      }else if(t.Topics){
+        t.Topics.slice(0,5).forEach(st=>{
+          if(st.Text) results.push({title: (st.Text.split(' - ')[0]||st.Text), url: st.FirstURL||'', snippet: st.Text});
+        });
+      }
+    });
+  }
+  if(results.length === 0) return [{title:'No results', url:'#', snippet:'No results returned from DuckDuckGo.'}];
+  return results;
+}
+
+function mockResultsForQuery(q){
+  return [
     {title: `Public page mentioning "${q}"`, url: 'https://example.com/article', snippet: 'This is a mock snippet from a public web page.'},
     {title: `Social mention of "${q}"`, url: 'https://social.example/user/post/123', snippet: 'Public post referencing the query.'},
     {title: `Certificate or metadata for "${q}"`, url: 'https://crt.sh/?q=example', snippet: 'Public cert information (mock).'}
   ];
-  mock.forEach(item=>{
+}
+
+function renderResults(results){
+  const container = document.getElementById('search-results');
+  container.innerHTML = '';
+  results.forEach(item=>{
     const el = document.createElement('div');
     el.className = 'result-item';
-    el.innerHTML = `<h3>${item.title}</h3><p>${item.snippet}</p><a href='${item.url}' target='_blank' style='color:var(--accent3)'>${item.url}</a>`;
+    el.innerHTML = `<h3>${item.title}</h3><p>${item.snippet||''}</p><a href='${item.url}' target='_blank' style='color:var(--accent3)'>${item.url}</a>`;
     container.appendChild(el);
   });
 }
@@ -37,7 +77,9 @@ document.getElementById('search-btn').addEventListener('click', ()=>{
   const q = document.getElementById('global-search').value || '';
   document.querySelector('.nav-btn[data-panel="search"]').click();
   document.getElementById('search-input').value = q;
-  showMockResults(q || 'example.com');
+  // default to DuckDuckGo for global quick searches
+  const src = document.getElementById('search-source'); if(src) src.value = 'duckduckgo';
+  document.getElementById('do-search').click();
 });
 
 // ========== AI ASSISTANT ==========
@@ -112,5 +154,5 @@ async function queryHuggingFace(prompt){
 }
 
 // ========== INIT ==========
-showMockResults('example.com');
+renderResults(mockResultsForQuery('example.com'));
 addChatMessage("Welcome to AI Assistant! 🤖 Ask me anything about OSINT methodology, data analysis, or how to interpret your findings.", 'ai');

@@ -162,8 +162,18 @@
         </section>
 
         <section id="panel-maps" class="panel">
-          <h2>Maps</h2>
-          <div class="placeholder">Geospatial context (mock)</div>
+          <h2>Geospatial Intelligence & Location Context</h2>
+          <div class="controls">
+            <input id="geo-input" placeholder="Enter IP address, domain, or email" />
+            <select id="geo-source">
+              <option value="ip-geolocation">IP Geolocation (MaxMind, IP2Location)</option>
+              <option value="dns-location">DNS Location Inference</option>
+              <option value="whois-location">WHOIS Registration Location</option>
+              <option value="asn-map">ASN & Network Map</option>
+            </select>
+            <button id="do-geolocation-lookup">Get Location Data</button>
+          </div>
+          <div id="geo-results" class="results"></div>
         </section>
 
         <section id="panel-correlation" class="panel">

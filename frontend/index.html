@@ -217,18 +217,48 @@
             <p style="color: var(--muted); font-size: 12px; margin-top: 12px;">💡 Powered by free AI model • Ask for OSINT analysis, data interpretation, or methodology help</p>
           </div>
         </section>
-          <h2>Settings & Ethics</h2>
-          <div class="ethics-section">
-            <h3>🛡️ Ethical Guidelines</h3>
-            <p><strong>Public Data Only:</strong> This tool analyzes publicly available information exclusively.</p>
-            <p><strong>No Hacking:</strong> No login bypassing, credential theft, or system penetration.</p>
-            <p><strong>No Harassment:</strong> Do not use findings to doxx, stalk, or harm individuals.</p>
-            <p><strong>Attribution Required:</strong> Always cite sources and maintain data provenance.</p>
-            <p><strong>Legal Compliance:</strong> Respect robots.txt, rate limits, and applicable laws.</p>
-            <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.04); margin: 14px 0;">
-            <h3>📋 Terms of Use</h3>
-            <p>Master OSINT is for educational and research purposes. Users are responsible for legal compliance and ethical conduct.</p>
+
+        <section id="panel-settings" class="panel">
+          <h2>Security, Ethics & Rate Limiting</h2>
+          <div class="controls">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+              <div>
+                <label style="display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px;">📊 Usage Today:</label>
+                <div id="usage-stats" style="font-size: 14px; color: var(--accent2);">0/1000 requests</div>
+              </div>
+              <div>
+                <label style="display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px;">⏱️ Rate Limit:</label>
+                <div id="rate-limit-status" style="font-size: 14px; color: var(--accent3);">100 req/min</div>
+              </div>
+            </div>
+            <button id="check-compliance">🔍 Check Compliance Status</button>
+            <button id="reset-usage">🔄 Reset Usage Stats</button>
           </div>
+          
+          <div style="margin-top: 16px;">
+            <h3 style="color: var(--accent1); margin-bottom: 8px;">🛡️ Ethical Guidelines</h3>
+            <div id="ethics-section" class="result-item" style="font-size: 12px; line-height: 1.6;">
+              <p><strong>✓ Public Data Only:</strong> This tool analyzes publicly available information exclusively.</p>
+              <p><strong>✓ No Hacking:</strong> No login bypassing, credential theft, or system penetration.</p>
+              <p><strong>✓ No Harassment:</strong> Do not use findings to doxx, stalk, or harm individuals.</p>
+              <p><strong>✓ Attribution Required:</strong> Always cite sources and maintain data provenance.</p>
+              <p><strong>✓ Legal Compliance:</strong> Respect robots.txt, rate limits, and applicable laws.</p>
+            </div>
+          </div>
+
+          <div style="margin-top: 16px;">
+            <h3 style="color: var(--accent1); margin-bottom: 8px;">📋 Terms of Use</h3>
+            <div id="terms-section" class="result-item" style="font-size: 12px; line-height: 1.6;">
+              <p>Master OSINT is for educational and research purposes. By using this tool, you agree to:</p>
+              <p>• Use only publicly available data</p>
+              <p>• Comply with all applicable laws and regulations</p>
+              <p>• Take full responsibility for your actions</p>
+              <p>• Not use this tool for illegal, unethical, or harmful purposes</p>
+              <p><strong>Disclaimer:</strong> Users are solely responsible for legal compliance and ethical conduct.</p>
+            </div>
+          </div>
+
+          <div id="compliance-results" class="results" style="margin-top: 12px;"></div>
         </section>
       </section>
 

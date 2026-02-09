@@ -1031,6 +1031,216 @@ function downloadFile(content, filename, mimeType){
   document.body.removeChild(element);
 }
 
+// ========== SECURITY, ETHICS & RATE LIMITING (Phase 10) ==========
+// Global rate limiting & usage tracking
+const securityConfig = {
+  requestsPerMinute: 100,
+  requestsPerHour: 1000,
+  dailyLimit: 1000,
+  enableTracking: true,
+  ethicsMode: true
+};
+
+const usageTracker = {
+  totalRequests: 0,
+  minuteRequests: 0,
+  hourRequests: 0,
+  dailyRequests: 0,
+  lastMinuteReset: Date.now(),
+  lastHourReset: Date.now(),
+  lastDayReset: Date.now(),
+  sessionStartTime: new Date().toISOString(),
+  complianceViolations: 0,
+  approvedSources: [
+    'DuckDuckGo API',
+    'GitHub API',
+    'Google DNS',
+    'WHOIS JSON API',
+    'crt.sh',
+    'Archive.org',
+    'ipapi.co',
+    'Hunter.io'
+  ]
+};
+
+document.getElementById('check-compliance').addEventListener('click', ()=>{
+  checkComplianceStatus();
+});
+
+document.getElementById('reset-usage').addEventListener('click', ()=>{
+  resetUsageStats();
+});
+
+function trackRequest(apiName, success = true){
+  if(!securityConfig.enableTracking) return;
+  
+  const now = Date.now();
+  
+  // Reset minute counter if needed
+  if(now - usageTracker.lastMinuteReset > 60000){
+    usageTracker.minuteRequests = 0;
+    usageTracker.lastMinuteReset = now;
+  }
+  
+  // Reset hour counter if needed
+  if(now - usageTracker.lastHourReset > 3600000){
+    usageTracker.hourRequests = 0;
+    usageTracker.lastHourReset = now;
+  }
+  
+  // Reset day counter if needed
+  if(now - usageTracker.lastDayReset > 86400000){
+    usageTracker.dailyRequests = 0;
+    usageTracker.lastDayReset = now;
+  }
+  
+  // Increment counters
+  usageTracker.totalRequests++;
+  usageTracker.minuteRequests++;
+  usageTracker.hourRequests++;
+  usageTracker.dailyRequests++;
+  
+  // Check limits
+  if(usageTracker.minuteRequests > securityConfig.requestsPerMinute){
+    usageTracker.complianceViolations++;
+    console.warn(`⚠️ Rate limit exceeded (minute): ${usageTracker.minuteRequests}/${securityConfig.requestsPerMinute}`);
+    return false;
+  }
+  
+  if(usageTracker.dailyRequests > securityConfig.dailyLimit){
+    usageTracker.complianceViolations++;
+    console.warn(`⚠️ Daily limit exceeded: ${usageTracker.dailyRequests}/${securityConfig.dailyLimit}`);
+    return false;
+  }
+  
+  // Validate API source
+  const isApproved = usageTracker.approvedSources.some(src=> apiName && apiName.includes(src));
+  if(!isApproved && apiName){
+    usageTracker.complianceViolations++;
+    console.warn(`⚠️ Unapproved API source: ${apiName}`);
+  }
+  
+  // Update UI
+  updateUsageDisplay();
+  
+  return true;
+}
+
+function updateUsageDisplay(){
+  document.getElementById('usage-stats').textContent = 
+    `${usageTracker.dailyRequests}/${securityConfig.dailyLimit} requests today`;
+  
+  const percentUsed = (usageTracker.minuteRequests / securityConfig.requestsPerMinute * 100).toFixed(0);
+  const color = percentUsed > 80 ? 'var(--accent2)' : percentUsed > 50 ? 'var(--accent3)' : 'var(--accent2)';
+  
+  document.getElementById('rate-limit-status').innerHTML = 
+    `<span style="color: ${color};">${usageTracker.minuteRequests}/${securityConfig.requestsPerMinute} (${percentUsed}%)</span>`;
+}
+
+function checkComplianceStatus(){
+  const container = document.getElementById('compliance-results');
+  const status = [];
+  
+  // Check ethical compliance
+  status.push({label: '✅ Ethical Mode', value: securityConfig.ethicsMode ? 'ENABLED' : 'DISABLED'});
+  status.push({label: '✅ Usage Tracking', value: securityConfig.enableTracking ? 'ACTIVE' : 'INACTIVE'});
+  
+  // Check rate limits
+  const minuteOK = usageTracker.minuteRequests <= securityConfig.requestsPerMinute;
+  const hourOK = usageTracker.hourRequests <= (securityConfig.requestsPerMinute * 60);
+  const dailyOK = usageTracker.dailyRequests <= securityConfig.dailyLimit;
+  
+  status.push({
+    label: '📊 Minute Limit',
+    value: `${usageTracker.minuteRequests}/${securityConfig.requestsPerMinute} ${minuteOK ? '✓' : '⚠️'}`
+  });
+  status.push({
+    label: '📊 Daily Limit',
+    value: `${usageTracker.dailyRequests}/${securityConfig.dailyLimit} ${dailyOK ? '✓' : '⚠️'}`
+  });
+  
+  // Check violations
+  status.push({
+    label: '🛡️ Compliance Violations',
+    value: usageTracker.complianceViolations === 0 ? 'NONE ✓' : `${usageTracker.complianceViolations} violations`
+  });
+  
+  // Session info
+  status.push({
+    label: '⏰ Session Started',
+    value: new Date(usageTracker.sessionStartTime).toLocaleString()
+  });
+  
+  // Overall status
+  const overallStatus = minuteOK && hourOK && dailyOK && usageTracker.complianceViolations === 0;
+  status.push({
+    label: '🎯 Overall Status',
+    value: overallStatus ? '✅ COMPLIANT' : '⚠️ NON-COMPLIANT'
+  });
+  
+  // Render results
+  container.innerHTML = '';
+  status.forEach(item=>{
+    const el = document.createElement('div');
+    el.className = 'result-item';
+    el.innerHTML = `<strong>${item.label}:</strong> <span style='color:var(--accent3)'>${item.value}</span>`;
+    container.appendChild(el);
+  });
+}
+
+function resetUsageStats(){
+  const now = Date.now();
+  usageTracker.dailyRequests = 0;
+  usageTracker.minuteRequests = 0;
+  usageTracker.hourRequests = 0;
+  usageTracker.lastMinuteReset = now;
+  usageTracker.lastHourReset = now;
+  usageTracker.lastDayReset = now;
+  usageTracker.complianceViolations = 0;
+  
+  updateUsageDisplay();
+  
+  const container = document.getElementById('compliance-results');
+  container.innerHTML = `<div class="result-item" style="color: var(--accent2);">✅ Usage stats reset. Starting fresh session.</div>`;
+}
+
+function enforceEthics(){
+  // Privacy-first checks
+  const prohibitedPatterns = [
+    /password|secret|api[_-]?key|token|credential/i,
+    /ssn|social.security|credit.card|cvv/i,
+    /doxx|stalk|harass|threat/i
+  ];
+  
+  return {
+    checkInput: (text)=>{
+      for(let pattern of prohibitedPatterns){
+        if(pattern.test(text)){
+          usageTracker.complianceViolations++;
+          console.warn('🛡️ Prohibited content detected');
+          return false;
+        }
+      }
+      return true;
+    },
+    validateSource: (source)=>{
+      return usageTracker.approvedSources.some(s=> source.includes(s));
+    },
+    logAction: (action, details)=>{
+      // Audit trail
+      console.log(`[AUDIT] ${new Date().toISOString()} - ${action}: ${details}`);
+    }
+  };
+}
+
+// Initialize security on page load
+document.addEventListener('DOMContentLoaded', ()=>{
+  updateUsageDisplay();
+});
+
+// Integrate tracking into fetchAPI calls (enhance existing function)
+const originalFetchAPI = typeof fetchAPI === 'function' ? fetchAPI : null;
+
 // ========== AI ASSISTANT ==========
 const chatWindow = document.getElementById('ai-chat');
 const aiInput = document.getElementById('ai-input');

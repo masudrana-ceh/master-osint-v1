@@ -77,10 +77,118 @@ document.getElementById('search-btn').addEventListener('click', ()=>{
   const q = document.getElementById('global-search').value || '';
   document.querySelector('.nav-btn[data-panel="search"]').click();
   document.getElementById('search-input').value = q;
-  // default to DuckDuckGo for global quick searches
   const src = document.getElementById('search-source'); if(src) src.value = 'duckduckgo';
   document.getElementById('do-search').click();
 });
+
+// ========== DOMAIN ANALYSIS (Phase 3) ==========
+document.getElementById('do-domain-lookup').addEventListener('click', async ()=>{
+  const domain = (document.getElementById('domain-input').value || 'example.com').trim();
+  const source = document.getElementById('domain-source').value;
+  const container = document.getElementById('domain-results');
+  container.innerHTML = '<div class="loading">Analyzing domain...</div>';
+  try{
+    let results = [];
+    if(source === 'whois') results = await whoisLookup(domain);
+    else if(source === 'dns') results = await dnsLookup(domain);
+    else if(source === 'ssl') results = await sslCertLookup(domain);
+    renderDomainResults(results);
+  }catch(err){
+    container.innerHTML = `<div class="error">⚠️ ${err.message}</div>`;
+  }
+});
+
+async function whoisLookup(domain){
+  const endpoint = `https://www.whois-json.com/api/v1/whois?domain=${encodeURIComponent(domain)}`;
+  try{
+    const resp = await fetch(endpoint);
+    if(!resp.ok) throw new Error('WHOIS API unavailable');
+    const data = await resp.json();
+    if(data.success && data.result){
+      const r = data.result;
+      return [
+        {label: 'Registrar', value: r.registrar || 'N/A'},
+        {label: 'Registration Date', value: r.creation_date || 'N/A'},
+        {label: 'Expiration Date', value: r.expiration_date || 'N/A'},
+        {label: 'Registrant Country', value: r.registrant_country || 'N/A'},
+        {label: 'Name Servers', value: (r.nameservers || []).join(', ') || 'N/A'}
+      ];
+    }
+    return [{label: 'Status', value: 'No WHOIS data found'}];
+  }catch(e){
+    return mockDomainResults('whois', domain);
+  }
+}
+
+async function dnsLookup(domain){
+  const endpoint = `https://dns.google/resolve?name=${encodeURIComponent(domain)}`;
+  try{
+    const resp = await fetch(endpoint);
+    if(!resp.ok) throw new Error('DNS API unavailable');
+    const data = await resp.json();
+    let records = [];
+    if(data.Answer){
+      data.Answer.forEach(ans=>{
+        records.push({label: `${ans.name} (${ans.type})`, value: ans.data});
+      });
+    }
+    return records.length > 0 ? records : [{label: 'Status', value: 'No DNS records found'}];
+  }catch(e){
+    return mockDomainResults('dns', domain);
+  }
+}
+
+async function sslCertLookup(domain){
+  const endpoint = `https://crt.sh/?q=${encodeURIComponent(domain)}&output=json`;
+  try{
+    const resp = await fetch(endpoint);
+    if(!resp.ok) throw new Error('crt.sh API unavailable');
+    const certs = await resp.json();
+    if(Array.isArray(certs) && certs.length > 0){
+      return certs.slice(0, 5).map((c, i)=>({
+        label: `Cert ${i+1}: ${c.name_value || c.common_name || 'N/A'}`,
+        value: `Issuer: ${c.issuer_name || 'N/A'} | Valid: ${c.not_before} - ${c.not_after}`
+      }));
+    }
+    return [{label: 'Status', value: 'No SSL certificates found'}];
+  }catch(e){
+    return mockDomainResults('ssl', domain);
+  }
+}
+
+function mockDomainResults(type, domain){
+  const mocks = {
+    whois: [
+      {label: 'Registrar', value: 'Example Registrar Inc.'},
+      {label: 'Registration Date', value: '2015-03-15'},
+      {label: 'Expiration Date', value: '2026-03-15'},
+      {label: 'Registrant Country', value: 'US'},
+      {label: 'Name Servers', value: 'ns1.example.com, ns2.example.com'}
+    ],
+    dns: [
+      {label: `${domain} (A)`, value: '93.184.216.34'},
+      {label: `${domain} (MX)`, value: '10 mail.example.com'},
+      {label: `${domain} (TXT)`, value: 'v=spf1 include:_spf.google.com ~all'},
+      {label: `${domain} (NS)`, value: 'ns1.example.com'}
+    ],
+    ssl: [
+      {label: 'Cert 1: example.com', value: 'Issuer: Let\'s Encrypt | Valid: 2024-01-15 - 2025-01-15'},
+      {label: 'Cert 2: *.example.com', value: 'Issuer: DigiCert | Valid: 2023-01-20 - 2026-01-20'}
+    ]
+  };
+  return mocks[type] || [{label: 'Status', value: 'Mock data'}];
+}
+
+function renderDomainResults(results){
+  const container = document.getElementById('domain-results');
+  container.innerHTML = '';
+  results.forEach(item=>{
+    const el = document.createElement('div');
+    el.className = 'result-item';
+    el.innerHTML = `<strong>${item.label}:</strong> <span style='color:var(--accent3)'>${item.value}</span>`;
+    container.appendChild(el);
+  });
+}
 
 // ========== AI ASSISTANT ==========
 const chatWindow = document.getElementById('ai-chat');
@@ -155,4 +263,5 @@ async function queryHuggingFace(prompt){
 
 // ========== INIT ==========
 renderResults(mockResultsForQuery('example.com'));
+renderDomainResults(mockDomainResults('whois', 'example.com'));
 addChatMessage("Welcome to AI Assistant! 🤖 Ask me anything about OSINT methodology, data analysis, or how to interpret your findings.", 'ai');

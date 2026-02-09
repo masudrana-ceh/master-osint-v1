@@ -109,8 +109,17 @@
         </section>
 
         <section id="panel-domain" class="panel">
-          <h2>Domain</h2>
-          <div class="placeholder">Domain intelligence dashboard (mock)</div>
+          <h2>Domain & Website Intelligence</h2>
+          <div class="controls">
+            <input id="domain-input" placeholder="Enter domain (e.g. example.com)" />
+            <select id="domain-source">
+              <option value="whois">WHOIS (Registrant Info)</option>
+              <option value="dns">DNS (Records)</option>
+              <option value="ssl">SSL Certificate (crt.sh)</option>
+            </select>
+            <button id="do-domain-lookup">Analyze Domain</button>
+          </div>
+          <div id="domain-results" class="results"></div>
         </section>
 
         <section id="panel-documents" class="panel">

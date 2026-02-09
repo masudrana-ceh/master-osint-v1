@@ -10,6 +10,53 @@ document.querySelectorAll('.nav-btn').forEach(btn=>{
   })
 });
 
+// ========== THEME MANAGER ==========
+(() => {
+  const THEME_KEY = 'mo_theme';
+  const select = document.getElementById('theme-select');
+
+  function applyTheme(theme){
+    if(!theme || theme === 'system'){
+      // follow system preference
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      // keep select showing 'system'
+      return;
+    }
+    if(theme === 'dark') document.documentElement.setAttribute('data-theme', '');
+    else document.documentElement.setAttribute('data-theme', theme);
+  }
+
+  function init(){
+    // populate selector initial value
+    let stored = null;
+    try{ stored = localStorage.getItem(THEME_KEY); }catch(e){}
+    if(!stored) stored = 'system';
+    if(select){ select.value = stored; }
+    applyTheme(stored);
+
+    // watch for system changes if user chose system
+    if(window.matchMedia){
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      mq.addEventListener && mq.addEventListener('change', ()=>{
+        const current = localStorage.getItem(THEME_KEY) || 'system';
+        if(current === 'system') applyTheme('system');
+      });
+    }
+
+    if(select){
+      select.addEventListener('change', (e)=>{
+        const v = e.target.value;
+        try{ localStorage.setItem(THEME_KEY, v); }catch(err){}
+        applyTheme(v);
+      });
+    }
+  }
+
+  // On initial load, if no explicit theme saved, prefer dark by default (legacy)
+  document.addEventListener('DOMContentLoaded', init);
+})();
+
 // ========== SEARCH MODULE ==========
 document.getElementById('do-search').addEventListener('click', async ()=>{
   const q = (document.getElementById('search-input').value || 'example query').trim();

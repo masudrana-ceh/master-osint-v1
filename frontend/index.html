@@ -100,6 +100,7 @@
             <input id="search-input" placeholder="Enter keyword, name or domain" />
             <select id="search-source">
               <option value="duckduckgo">DuckDuckGo (Web)</option>
+              <option value="github">GitHub (Repos & Users)</option>
               <option value="web">All Web (mock)</option>
               <option value="social">Social (mock)</option>
             </select>
@@ -123,8 +124,13 @@
         </section>
 
         <section id="panel-documents" class="panel">
-          <h2>Documents</h2>
-          <div class="placeholder">Upload-only analysis (Phase 4)</div>
+          <h2>Document Metadata Analysis</h2>
+          <div class="controls">
+            <input id="file-upload" type="file" accept="image/*,.pdf" />
+            <button id="do-extract-metadata">Extract Metadata</button>
+            <p style="color: var(--muted); font-size: 12px; margin-top: 8px;">📸 Supports: JPEG, PNG, PDF (client-side, no upload)</p>
+          </div>
+          <div id="metadata-results" class="results"></div>
         </section>
 
         <section id="panel-people" class="panel">

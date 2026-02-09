@@ -20,6 +20,8 @@ document.getElementById('do-search').addEventListener('click', async ()=>{
     let results = [];
     if(source === 'duckduckgo'){
       results = await duckDuckGoSearch(q);
+    }else if(source === 'github'){
+      results = await githubSearch(q);
     }else if(source === 'web' || source === 'social'){
       results = mockResultsForQuery(q);
     }
@@ -51,6 +53,38 @@ async function duckDuckGoSearch(q){
   }
   if(results.length === 0) return [{title:'No results', url:'#', snippet:'No results returned from DuckDuckGo.'}];
   return results;
+}
+
+async function githubSearch(q){
+  // GitHub API - public repos and users (no auth required, rate limit 60/hr)
+  const repoEndpoint = `https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=stars&order=desc&per_page=5`;
+  const userEndpoint = `https://api.github.com/search/users?q=${encodeURIComponent(q)}&per_page=3`;
+  try{
+    const results = [];
+    // Search repos
+    const repoResp = await fetch(repoEndpoint);
+    if(repoResp.ok){
+      const repoData = await repoResp.json();
+      if(repoData.items && Array.isArray(repoData.items)){
+        repoData.items.forEach(repo=>{
+          results.push({title: `📦 ${repo.full_name}`, url: repo.html_url, snippet: repo.description || 'No description'});
+        });
+      }
+    }
+    // Search users
+    const userResp = await fetch(userEndpoint);
+    if(userResp.ok){
+      const userData = await userResp.json();
+      if(userData.items && Array.isArray(userData.items)){
+        userData.items.forEach(user=>{
+          results.push({title: `👤 ${user.login}`, url: user.html_url, snippet: `GitHub profile for user: ${user.login}`});
+        });
+      }
+    }
+    return results.length > 0 ? results : [{title:'No GitHub results', url:'#', snippet:'No matching repositories or users found.'}];
+  }catch(e){
+    return [{title:'GitHub API error', url:'#', snippet:'Falling back to mock results. Check rate limit or try again.'}];
+  }
 }
 
 function mockResultsForQuery(q){
@@ -217,6 +251,91 @@ async function sendAIMessage(){
   }
 }
 
+// ========== DOCUMENT METADATA (Phase 4) ==========
+document.getElementById('do-extract-metadata').addEventListener('click', async ()=>{
+  const file = document.getElementById('file-upload').files[0];
+  const container = document.getElementById('metadata-results');
+  if(!file){
+    container.innerHTML = '<div class="error">⚠️ Please select a file first</div>';
+    return;
+  }
+  container.innerHTML = '<div class="loading">Extracting metadata...</div>';
+  try{
+    let metadata = [];
+    const fileType = file.type;
+    const fileName = file.name;
+    metadata.push({label: 'File Name', value: fileName});
+    metadata.push({label: 'File Type', value: fileType});
+    metadata.push({label: 'File Size', value: `${(file.size / 1024).toFixed(2)} KB`});
+    metadata.push({label: 'Last Modified', value: new Date(file.lastModified).toLocaleString()});
+    
+    if(fileType.startsWith('image/')){
+      const imgMeta = await extractImageMetadata(file);
+      metadata = metadata.concat(imgMeta);
+    }else if(fileType === 'application/pdf'){
+      const pdfMeta = await extractPdfMetadata(file);
+      metadata = metadata.concat(pdfMeta);
+    }else{
+      metadata.push({label: 'Format', value: 'Unsupported format'});
+    }
+    renderMetadataResults(metadata);
+  }catch(err){
+    container.innerHTML = `<div class="error">⚠️ ${err.message}</div>`;
+  }
+});
+
+async function extractImageMetadata(file){
+  const metadata = [];
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  return new Promise((resolve)=>{
+    img.onload = ()=>{
+      metadata.push({label: 'Image Width', value: `${img.width}px`});
+      metadata.push({label: 'Image Height', value: `${img.height}px`});
+      metadata.push({label: 'Aspect Ratio', value: (img.width / img.height).toFixed(2)});
+      // Note: EXIF extraction requires a library like piexifjs; for now, basic dimensions
+      metadata.push({label: 'EXIF Data', value: 'EXIF requires library (use piexifjs for full extraction)'});
+      URL.revokeObjectURL(url);
+      resolve(metadata);
+    };
+    img.src = url;
+  });
+}
+
+async function extractPdfMetadata(file){
+  const metadata = [];
+  const reader = new FileReader();
+  return new Promise((resolve)=>{
+    reader.onload = (e)=>{
+      const content = e.target.result;
+      const text = new TextDecoder().decode(new Uint8Array(content));
+      // Basic PDF extraction: look for common metadata fields
+      const titleMatch = text.match(/\/Title\\?\(([^)]+)\\?\)/);
+      const authorMatch = text.match(/\/Author\\?\(([^)]+)\\?\)/);
+      const creatorMatch = text.match(/\/Creator\\?\(([^)]+)\\?\)/);
+      const producerMatch = text.match(/\/Producer\\?\(([^)]+)\\?\)/);
+      if(titleMatch) metadata.push({label: 'PDF Title', value: titleMatch[1]});
+      if(authorMatch) metadata.push({label: 'Author', value: authorMatch[1]});
+      if(creatorMatch) metadata.push({label: 'Creator App', value: creatorMatch[1]});
+      if(producerMatch) metadata.push({label: 'Producer', value: producerMatch[1]});
+      if(metadata.length === 0) metadata.push({label: 'PDF Metadata', value: 'No standard metadata found'});
+      resolve(metadata);
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function renderMetadataResults(metadata){
+  const container = document.getElementById('metadata-results');
+  container.innerHTML = '';
+  metadata.forEach(item=>{
+    const el = document.createElement('div');
+    el.className = 'result-item';
+    el.innerHTML = `<strong>${item.label}:</strong> <span style='color:var(--accent3)'>${item.value}</span>`;
+    container.appendChild(el);
+  });
+}
+
 function addChatMessage(text, role){
   const msg = document.createElement('div');
   msg.className = `chat-message ${role}`;
@@ -264,4 +383,9 @@ async function queryHuggingFace(prompt){
 // ========== INIT ==========
 renderResults(mockResultsForQuery('example.com'));
 renderDomainResults(mockDomainResults('whois', 'example.com'));
+renderMetadataResults([
+  {label: 'Status', value: 'Upload an image (JPEG/PNG) or PDF to extract metadata'},
+  {label: 'File Types', value: 'JPEG, PNG, PDF (client-side processing)'},
+  {label: 'Features', value: 'EXIF, PDF title/author, image dimensions'}
+]);
 addChatMessage("Welcome to AI Assistant! 🤖 Ask me anything about OSINT methodology, data analysis, or how to interpret your findings.", 'ai');

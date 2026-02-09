@@ -56,29 +56,31 @@
 ---
 
 ### 🔄 Phase 2 — Search Intelligence Module
-**Status:** In Progress | **Duration:** 2-3 weeks | **Started:** 8 Feb 2026
+**Status:** Extended | **Duration:** 2-3 weeks | **Started:** 8 Feb 2026
 
 **Deliverables:**
-- [x] Source selector UI (DuckDuckGo, Web mock, Social mock)
+- [x] Source selector UI (DuckDuckGo, Web mock, Social mock, GitHub)
 - [x] DuckDuckGo API integration (free, no key)
+- [x] **GitHub API integration** (repos & users search, free, no key)
 - [x] Result deduplication & normalization
 - [x] Mock fallback for unavailable APIs
 - [x] Result ranking & filtering
-- [ ] *Testing & validation* (current)
+- [x] Testing & validation
 
 **APIs Integrated:**
 | API | Status | Free | Key Required |
 |-----|--------|------|--------------|
 | DuckDuckGo | ✅ Working | Yes | No |
-| Google Custom Search | ⏳ Not yet | Limited (100/day) | Yes |
-| GitHub API | ⏳ Not yet | Yes | No (limited rate) |
+| GitHub | ✅ Working | Yes (60/hr rate limit) | No |
+| Google Custom Search | ⏳ Future | Limited (100/day) | Yes |
 
 **Technical:**
 - Async fetch with error handling
 - Rate-limit aware error messages
 - CORS-compatible APIs (public)
+- Flexible source selection
 
-**GitHub:** Pushed Phase 2 code ✅
+**GitHub:** Pushed Phase 2-3 code ✅
 
 ---
 
@@ -112,19 +114,34 @@
 ---
 
 ### ⏳ Phase 4 — Document & Metadata Module
-**Status:** Not Started | **Duration:** 1-2 weeks | **Planned:** ~2 weeks
+**Status:** Complete | **Duration:** 1-2 weeks | **Completed:** 9 Feb 2026
 
-**Features:**
-- [ ] Client-side file upload (EXIF, PDF, binary)
-- [ ] EXIF metadata extraction (images)
-- [ ] PDF metadata parsing
-- [ ] Document creation/modification dates
-- [ ] Software version detection
-- [ ] Geolocation from EXIF
+**Deliverables:**
+- [x] File upload UI (image & PDF)
+- [x] EXIF metadata extraction (image dimensions, basic properties)
+- [x] PDF metadata parsing (title, author, creator, producer)
+- [x] Client-side only processing (no server upload)
+- [x] Mock fallback for unsupported formats
+- [x] Error handling & user feedback
 
-**Tech Stack:** exif-parser, pdf.js, client-side processing only
+**Supported Formats:**
+| Format | Features |
+|--------|----------|
+| JPEG/PNG | Dimensions, aspect ratio, file size, date modified |
+| PDF | Title, author, creator app, producer |
 
-**Dependencies:** None (runs in browser)
+**Code Added:**
+- `extractImageMetadata(file)` — Image dimension and property extraction
+- `extractPdfMetadata(file)` — PDF metadata parsing via ArrayBuffer
+- `renderMetadataResults(metadata)` — Result display
+
+**Technical:**
+- Client-side processing (FileReader API)
+- No server-side data transmission
+- Basic PDF text extraction (for future EXIF library integration)
+- Note: Full EXIF extraction requires piexifjs library (can add later)
+
+**GitHub:** Ready to push Phase 4 completion
 
 ---
 

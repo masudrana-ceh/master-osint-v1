@@ -134,8 +134,17 @@
         </section>
 
         <section id="panel-people" class="panel">
-          <h2>People</h2>
-          <div class="placeholder">Public identity overview (mock)</div>
+          <h2>People & Identity Intelligence</h2>
+          <div class="controls">
+            <input id="people-input" placeholder="Enter username, name, or email" />
+            <select id="people-source">
+              <option value="username">Username Search (GitHub, Twitter)</option>
+              <option value="email">Email Discovery (Breach DB)</option>
+              <option value="reverse-email">Reverse Email (Names from address)</option>
+            </select>
+            <button id="do-people-lookup">Search Identity</button>
+          </div>
+          <div id="people-results" class="results"></div>
         </section>
 
         <section id="panel-timeline" class="panel">

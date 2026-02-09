@@ -193,8 +193,17 @@
         </section>
 
         <section id="panel-reports" class="panel">
-          <h2>Reports</h2>
-          <div class="placeholder">Export and summary tools</div>
+          <h2>Reports & Export</h2>
+          <div class="controls">
+            <textarea id="report-content" placeholder="Analysis results will appear here..." readonly style="width: 100%; height: 150px; padding: 10px; border: 1px solid var(--accent1); border-radius: 6px; background: rgba(10, 14, 39, 0.5); color: var(--text); font-family: monospace; font-size: 12px;"></textarea>
+            <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <button id="export-pdf">📄 Export PDF</button>
+              <button id="export-json">📋 Export JSON</button>
+              <button id="export-csv">📊 Export CSV</button>
+              <button id="generate-report">🔍 Generate Summary</button>
+            </div>
+          </div>
+          <div id="report-results" class="results" style="margin-top: 12px;"></div>
         </section>
 
         <section id="panel-ai" class="panel">

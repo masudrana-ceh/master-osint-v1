@@ -837,6 +837,200 @@ function renderCorrelationResults(results){
   });
 }
 
+// ========== REPORTING & EXPORT (Phase 9) ==========
+// Global report data store
+let reportData = {
+  timestamp: new Date().toISOString(),
+  analyses: [],
+  sources: new Set(),
+  metadata: {
+    version: '1.0',
+    platform: 'Master OSINT',
+    analysis_count: 0
+  }
+};
+
+document.getElementById('generate-report').addEventListener('click', ()=>{
+  generateSummaryReport();
+});
+
+document.getElementById('export-pdf').addEventListener('click', ()=>{
+  exportReportAsPDF();
+});
+
+document.getElementById('export-json').addEventListener('click', ()=>{
+  exportReportAsJSON();
+});
+
+document.getElementById('export-csv').addEventListener('click', ()=>{
+  exportReportAsCSV();
+});
+
+function generateSummaryReport(){
+  const textarea = document.getElementById('report-content');
+  const resultsDiv = document.getElementById('report-results');
+  
+  // Collect all analysis from result containers
+  const analyses = [];
+  document.querySelectorAll('[id$="-results"]').forEach(container=>{
+    const items = container.querySelectorAll('.result-item');
+    if(items.length > 0){
+      analyses.push({
+        module: container.id.replace('-results', '').toUpperCase(),
+        count: items.length,
+        timestamp: new Date().toLocaleString()
+      });
+    }
+  });
+  
+  // Build report summary
+  let summary = `MASTER OSINT ANALYSIS REPORT\n`;
+  summary += `Generated: ${new Date().toLocaleString()}\n`;
+  summary += `=====================================\n\n`;
+  summary += `SUMMARY\n`;
+  summary += `Total Analyses: ${analyses.length}\n`;
+  summary += `Total Results: ${analyses.reduce((a,b)=>a+b.count, 0)}\n`;
+  summary += `Analysis Modules Used: ${analyses.map(a=>a.module).join(', ')}\n\n`;
+  
+  summary += `DETAILED BREAKDOWN\n`;
+  analyses.forEach((analysis, i)=>{
+    summary += `${i+1}. ${analysis.module}: ${analysis.count} results (${analysis.timestamp})\n`;
+  });
+  
+  summary += `\nSOURCES CITED\n`;
+  const sources = [
+    'DuckDuckGo Search API (Phase 2)',
+    'GitHub API (Phase 2)',
+    'WHOIS JSON API (Phase 3)',
+    'Google DNS API (Phase 3)',
+    'crt.sh SSL Certificate Database (Phase 3)',
+    'Internet Archive - Wayback Machine (Phase 6)',
+    'IP API - Geolocation (Phase 7)',
+    'Hunter.io Email API (Phase 5)',
+    'Multiple Open Source Intelligence APIs'
+  ];
+  sources.forEach((src, i)=>{
+    summary += `${i+1}. ${src}\n`;
+  });
+  
+  summary += `\nDISCLAIMER\n`;
+  summary += `This report contains information from publicly available sources.\n`;
+  summary += `All data collected in compliance with applicable laws and ethics guidelines.\n`;
+  summary += `Timestamp proof: ${new Date().toISOString()}\n`;
+  
+  textarea.value = summary;
+  
+  // Show success message
+  resultsDiv.innerHTML = `<div class="result-item" style="color: var(--accent2);">✅ Report generated successfully. Ready to export.</div>`;
+  
+  // Store in report data
+  reportData.analyses = analyses;
+  reportData.timestamp = new Date().toISOString();
+  reportData.metadata.analysis_count = analyses.length;
+}
+
+function exportReportAsPDF(){
+  const textarea = document.getElementById('report-content');
+  const content = textarea.value || 'No report generated. Click "Generate Summary" first.';
+  
+  // Create simple PDF-like content (client-side)
+  const pdfContent = `
+-----BEGIN PDF DOCUMENT-----
+Title: Master OSINT Analysis Report
+Created: ${new Date().toLocaleString()}
+Version: PDF-1.0
+
+${content}
+
+-----END PDF DOCUMENT-----
+
+Note: Full PDF export requires jsPDF library.
+For now, copy this content and save as .pdf
+  `.trim();
+  
+  // Trigger download
+  downloadFile(pdfContent, `osint-report-${Date.now()}.pdf`, 'text/plain');
+  
+  document.getElementById('report-results').innerHTML = `
+    <div class="result-item" style="color: var(--accent2);">
+      📄 PDF export initiated: osint-report-${Date.now()}.pdf
+    </div>
+  `;
+}
+
+function exportReportAsJSON(){
+  const textarea = document.getElementById('report-content');
+  const analysisText = textarea.value || 'No report generated';
+  
+  const jsonData = {
+    report_type: 'Master OSINT Analysis',
+    generated_at: new Date().toISOString(),
+    analyses: reportData.analyses,
+    content: analysisText,
+    metadata: {
+      ...reportData.metadata,
+      platform: 'Master OSINT v1.0',
+      export_format: 'JSON'
+    },
+    sources: Array.from(reportData.sources),
+    disclaimer: 'This report contains information from publicly available sources.'
+  };
+  
+  const jsonString = JSON.stringify(jsonData, null, 2);
+  downloadFile(jsonString, `osint-report-${Date.now()}.json`, 'application/json');
+  
+  document.getElementById('report-results').innerHTML = `
+    <div class="result-item" style="color: var(--accent2);">
+      📋 JSON export downloaded: osint-report-${Date.now()}.json
+    </div>
+  `;
+}
+
+function exportReportAsCSV(){
+  const textarea = document.getElementById('report-content');
+  const analysisText = textarea.value || 'No report generated';
+  
+  // Create CSV format
+  let csvContent = 'data:text/csv;charset=utf-8,';
+  csvContent += 'Field,Value\n';
+  csvContent += `Report Type,Master OSINT Analysis\n`;
+  csvContent += `Generated At,"${new Date().toLocaleString()}"\n`;
+  csvContent += `Total Analyses,${reportData.analyses.length}\n`;
+  csvContent += `Platform,Master OSINT v1.0\n`;
+  csvContent += `\n`;
+  csvContent += `Module,Result Count,Timestamp\n`;
+  
+  reportData.analyses.forEach(analysis=>{
+    csvContent += `"${analysis.module}",${analysis.count},"${analysis.timestamp}"\n`;
+  });
+  
+  csvContent += `\n`;
+  csvContent += `Analysis Content\n`;
+  analysisText.split('\n').slice(0, 10).forEach(line=>{
+    csvContent += `"${line.replace(/"/g, '""')}"\n`;
+  });
+  
+  // Trigger download
+  const encodedUri = encodeURI(csvContent);
+  downloadFile(decodeURIComponent(encodedUri.split(',')[1]), `osint-report-${Date.now()}.csv`, 'text/csv');
+  
+  document.getElementById('report-results').innerHTML = `
+    <div class="result-item" style="color: var(--accent2);">
+      📊 CSV export downloaded: osint-report-${Date.now()}.csv
+    </div>
+  `;
+}
+
+function downloadFile(content, filename, mimeType){
+  const element = document.createElement('a');
+  element.setAttribute('href', `data:${mimeType};charset=utf-8,${encodeURIComponent(content)}`);
+  element.setAttribute('download', filename);
+  element.style.display = 'none';
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+}
+
 // ========== AI ASSISTANT ==========
 const chatWindow = document.getElementById('ai-chat');
 const aiInput = document.getElementById('ai-input');

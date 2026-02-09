@@ -148,8 +148,17 @@
         </section>
 
         <section id="panel-timeline" class="panel">
-          <h2>Timeline</h2>
-          <div class="placeholder">Temporal visualizations (mock)</div>
+          <h2>Temporal Intelligence & History</h2>
+          <div class="controls">
+            <input id="timeline-input" placeholder="Enter domain or URL" />
+            <select id="timeline-source">
+              <option value="wayback">Wayback Machine (Internet Archive)</option>
+              <option value="dns-history">DNS History (public records)</option>
+              <option value="cert-history">SSL Certificate History</option>
+            </select>
+            <button id="do-timeline-lookup">Get History</button>
+          </div>
+          <div id="timeline-results" class="results"></div>
         </section>
 
         <section id="panel-maps" class="panel">

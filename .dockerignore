@@ -1,0 +1,54 @@
+# Docker build ignore patterns
+
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Node modules (if any)
+node_modules/
+npm-debug.log
+
+# OS files
+.DS_Store
+.env.local
+Thumbs.db
+*.swp
+*.swo
+
+# Development files
+.vscode/
+.idea/
+*.test.js
+__tests__/
+
+# Build artifacts
+dist/
+build/
+*.o
+*.a
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.bak
+
+# Documentation (already copied)
+docs/
+CONTRIBUTING.md
+
+# CI/CD files (not needed in container)
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Test files
+test/
+coverage/
+*.test.js
+
+# Package manager files
+package-lock.json
+yarn.lock
+Pipfile.lock
